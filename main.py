@@ -73,7 +73,7 @@ class LeftMenu(tk.Frame):
             self, text="Select a student", font=("Helvetica", "10", "bold")
         )
         # Student Listbox
-        listboxStudents = Listbox(self, width=25, selectmode="single")
+        listboxStudents = Listbox(self, width=30, selectmode="multiple")
 
         # Add Widgets
         labelTitle.pack()
@@ -153,7 +153,7 @@ class RightMenu(tk.Frame):
         # Listbox title
         labelTitle = Label(self, text="Attended Students", font=("Helvetica", "10"))
 
-        listboxStudents = Listbox(self, width=25, selectmode="single")
+        listboxStudents = Listbox(self, width=30, selectmode="multiple")
 
         labelTitle.pack()
         listboxStudents.pack()
@@ -191,9 +191,9 @@ class LastRow(tk.Frame):
         # Add Widgets
         labelType.pack(side=LEFT, padx=(5, 0))
         combo.pack(side=LEFT)
-        labelWeek.pack(side=LEFT, padx=(5, 0))
+        labelWeek.pack(side=LEFT, padx=(20, 0))
         textField.pack(side=LEFT)
-        exportButton.pack(side=LEFT, padx=(10, 0))
+        exportButton.pack(side=LEFT, padx=(30, 0))
 
 
 class Student:
@@ -229,7 +229,7 @@ def findAttendedStudentListbox(parent: tk.Frame) -> Listbox:
 
 
 def importStudent(parent: tk.Frame):
-    filetypes = (("Excel Files", "*.xls"), ("All files", "*.*"))
+    filetypes = (("Excel Files", "*.xlsx *.xls"), ("All files", "*.*"))
 
     # select file
     filename = askopenfilename(title="Open a file", initialdir="/", filetypes=filetypes)
@@ -269,7 +269,7 @@ def listStudent(parent: tk.Frame):
             )
             _list.append(name)
 
-    sortList(lb, _list)
+    sortAndAddList(lb, _list)
 
 
 def changeSelectedAP(combobox: ttk.Combobox, parent: tk.Frame):
@@ -285,7 +285,7 @@ def changeSelectedAP(combobox: ttk.Combobox, parent: tk.Frame):
     listStudent(parent)
 
 
-def sortList(lb: Listbox, items: list):
+def sortAndAddList(lb: Listbox, items: list):
     _items = sorted(items)
 
     count = 1
@@ -298,15 +298,20 @@ def addStudent(parent: tk.Frame):
     lb = findStudentListbox(parent)
     lbA = findAttendedStudentListbox(parent)
 
-    selected: str = lb.get(ACTIVE)
-    sId = selected.split(" , ")[2]
+    allLbItems = lb.get(0, END)
 
-    for s in students:
-        if s.id == sId:
-            lb.delete(lb.curselection()[0])
-            attendedStudents.append(s)
-            students.remove(s)
+    for sIndex in lb.curselection()[::-1]:
+        sItem = allLbItems[sIndex]
+        sId = sItem.split(" , ")[2]
 
+        for s in students:
+            if s.id == sId:
+                attendedStudents.append(s)
+                students.remove(s)
+
+        lb.delete(sIndex)
+
+    # Last Step
     lbA.delete(0, END)
 
     _list = []
@@ -321,22 +326,27 @@ def addStudent(parent: tk.Frame):
         )
         _list.append(name)
 
-    sortList(lbA, _list)
+    sortAndAddList(lbA, _list)
 
 
 def removeStudent(parent: tk.Frame):
     lb: Listbox = findStudentListbox(parent)
     lbA: Listbox = findAttendedStudentListbox(parent)
 
-    selected: str = lbA.get(ACTIVE)
-    sId = selected.split(" , ")[2]
+    allLbaItems = lbA.get(0, END)
 
-    for s in attendedStudents:
-        if s.id == sId:
-            lbA.delete(lbA.curselection()[0])
-            students.append(s)
-            attendedStudents.remove(s)
+    for sIndex in lbA.curselection()[::-1]:
+        sItem = allLbaItems[sIndex]
+        sId = sItem.split(" , ")[2]
 
+        for s in attendedStudents:
+            if s.id == sId:
+                students.append(s)
+                attendedStudents.remove(s)
+
+        lbA.delete(sIndex)
+
+    # Last Step
     lb.delete(0, END)
 
     _list = []
@@ -351,7 +361,7 @@ def removeStudent(parent: tk.Frame):
             )
             _list.append(name)
 
-    sortList(lb, _list)
+    sortAndAddList(lb, _list)
 
 
 def exportFile(parent: tk.Frame):
@@ -372,11 +382,15 @@ def exportFile(parent: tk.Frame):
 
 
 def txtExport(fileName: str):
-    f = open(fileName, "a", encoding="utf-8")
+    data = {"Id": [], "Name": [], "Departmant": []}
 
-    f.write("Id, Name, Departmant\n")
     for student in attendedStudents:
-        f.write(f"{student.id}, {student.name}, {student.dept}\n")
+        data["Id"].append(student.id)
+        data["Name"].append(student.name)
+        data["Departmant"].append(student.dept)
+
+    df = pd.DataFrame(data)
+    df.to_string(fileName, index=False)
 
 
 def excelExport(fileName: str):
@@ -403,4 +417,4 @@ def csvExport(fileName: str):
     df.to_csv(fileName, index=False)
 
 
-App("tk", (590, 400))
+App("tk", (650, 380))
