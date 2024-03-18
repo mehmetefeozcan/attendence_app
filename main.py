@@ -229,7 +229,7 @@ def findAttendedStudentListbox(parent: tk.Frame) -> Listbox:
 
 
 def importStudent(parent: tk.Frame):
-    filetypes = (("Excel Files", "*.xlsx *.xls"), ("All files", "*.*"))
+    filetypes = (("Excel Files", "*.xlsx"), ("All files", "*.*"))
 
     # select file
     filename = askopenfilename(title="Open a file", initialdir="/", filetypes=filetypes)
@@ -377,7 +377,7 @@ def exportFile(parent: tk.Frame):
         txtExport(fileName)
     elif fileType == ".xlsx":
         excelExport(fileName)
-    else:
+    elif fileType == ".csv":
         csvExport(fileName)
 
 
@@ -406,7 +406,7 @@ def excelExport(fileName: str):
 
 
 def csvExport(fileName: str):
-    data = {"Id": [], "Name": [], "Departmant": []}
+    """data = {"Id": [], "Name": [], "Departmant": []}
 
     for student in attendedStudents:
         data["Id"].append(student.id)
@@ -414,7 +414,9 @@ def csvExport(fileName: str):
         data["Departmant"].append(student.dept)
 
     df = pd.DataFrame(data)
-    df.to_csv(fileName, index=False)
+    df.to_csv(fileName, index=False)"""
+
+    raise BaseException("File type is not supported")
 
 
 App("tk", (650, 380))
